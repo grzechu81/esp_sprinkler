@@ -29,7 +29,7 @@ void callback(char* topic, byte* payload, unsigned int length)
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
-  for (int i=0;i<length;i++) 
+  for (unsigned int i=0; i<length; i++) 
   {
     Serial.print((char)payload[i]);
   }
@@ -45,8 +45,22 @@ void callback(char* topic, byte* payload, unsigned int length)
     return;
   }
 
-  sprSupervisor.setJob(0, json["state1"], json["area1Time"]);
-  sprSupervisor.setJob(1, json["state2"], json["area2Time"]);
+  uint8_t cmd = json["cmd"];
+
+  if(cmd == 0)
+  {
+    sprSupervisor.stop();
+  }
+  else
+  {
+    uint8_t time0 = json["data"][0]["time"];
+    uint8_t time1 = json["data"][1]["time"];
+
+    sprSupervisor.start(0, time0);
+    sprSupervisor.start(1, time1);
+  }
+  
+
 }
 
 boolean reconnect() {

@@ -18,7 +18,8 @@ enum State
 class Supervisor
 {
     public:
-        void setJob(uint8_t id, bool run, uint8_t time);
+        void start(uint8_t id, uint8_t time);
+        void stop();
         void begin();
         void loop();
 };
