@@ -1,9 +1,11 @@
+#ifndef UNIT_TEST
+
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include "sprinkler.hpp"
-#include "supervisor.hpp"
+#include "sprinklermanager.hpp"
 
 
 const char *ssid =	"xxxxxxxx";
@@ -19,10 +21,10 @@ IPAddress mqttIpAddr(172, 16, 0, 2);
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
 
-Sprinkler area1Sprinkler(PIN1, MAX_WORKING_TIME);
-Sprinkler area2Sprinkler(PIN2, MAX_WORKING_TIME);
+Sprinkler area1Sprinkler(0, PIN1, MAX_WORKING_TIME);
+Sprinkler area2Sprinkler(1, PIN2, MAX_WORKING_TIME);
 
-Supervisor sprSupervisor;
+SprinklerManager sManager;
 
 void callback(char* topic, byte* payload, unsigned int length) 
 {
@@ -49,18 +51,16 @@ void callback(char* topic, byte* payload, unsigned int length)
 
   if(cmd == 0)
   {
-    sprSupervisor.stop();
+    sManager.stop();
   }
   else
   {
     uint8_t time0 = json["data"][0]["time"];
     uint8_t time1 = json["data"][1]["time"];
 
-    sprSupervisor.start(0, time0);
-    sprSupervisor.start(1, time1);
+    sManager.start(0, time0);
+    sManager.start(1, time1);
   }
-  
-
 }
 
 boolean reconnect() {
@@ -88,6 +88,10 @@ void setup() {
   mqttClient.setServer(mqttIpAddr, 1883);
   mqttClient.setCallback(callback);
 
+  sManager.begin();
+  sManager.addSprinkler(&area1Sprinkler);
+  sManager.addSprinkler(&area2Sprinkler);
+  
   WiFi.begin("ssid", "passwd");
   delay(1500);
 }
@@ -101,6 +105,8 @@ void loop() {
   {
     // Client connected
     mqttClient.loop();
-    sprSupervisor.loop();
+    sManager.loop();
   }
 }
+
+#endif
