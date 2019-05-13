@@ -30,6 +30,7 @@ void Sprinkler::stop()
 {
     digitalWrite(pin, LOW);
     isStarted = false;
+    startMilisecond = 0;
 }
 
 bool Sprinkler::process()
@@ -54,8 +55,7 @@ bool Sprinkler::process()
         }
         else
         {
-            digitalWrite(pin, LOW);
-            isStarted = false;
+            stop();
         }
     }
 

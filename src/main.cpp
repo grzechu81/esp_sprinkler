@@ -26,6 +26,18 @@ Sprinkler area2Sprinkler(1, PIN2, MAX_WORKING_TIME);
 
 SprinklerManager sManager;
 
+// {
+// 	"cmd" : 1,
+// 	"data" : [
+// 		{"time":15},
+// 		{"time":20}
+// 	]
+// }
+
+// {
+// 	"cmd" : 0
+// }
+
 void callback(char* topic, byte* payload, unsigned int length) 
 {
   Serial.print("Message arrived [");
@@ -71,12 +83,12 @@ boolean reconnect() {
       lastReconnectAttempt = now;
 
       // Attempt to reconnect
-      if (mqttClient.connect("arduinoClient")) 
+      if (mqttClient.connect("esp_sprinkler")) 
       {
         // Once connected, publish an announcement...
-        mqttClient.publish("outTopic","hello world");
+        mqttClient.publish("/home/sprinkler/status","online");
         // ... and resubscribe
-        mqttClient.subscribe("inTopic");
+        mqttClient.subscribe("/home/sprinkler/cmd");
       }
   }
  
