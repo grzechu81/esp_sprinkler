@@ -7,15 +7,15 @@
 #include "sprinkler.hpp"
 #include "sprinklermanager.hpp"
 
-
-const char *ssid =	"xxxxxxxx";
-const char *pass =	"yyyyyyyy";
-long lastReconnectAttempt = 0;
-
 #define BUFFER_SIZE 100
 #define PIN1 1
 #define PIN2 2
 #define MAX_WORKING_TIME 40 //in minutes
+#define LED 2
+
+long lastReconnectAttempt = 0;
+const char *ssid = "AndroidAP";
+const char *password = "haslo123";
 
 IPAddress mqttIpAddr(172, 16, 0, 2);
 WiFiClient wifiClient;
@@ -23,8 +23,12 @@ PubSubClient mqttClient(wifiClient);
 
 Sprinkler area1Sprinkler(0, PIN1, MAX_WORKING_TIME);
 Sprinkler area2Sprinkler(1, PIN2, MAX_WORKING_TIME);
-
 SprinklerManager sManager;
+
+WiFiEventHandler onConnected;
+WiFiEventHandler onDisconnected;
+WiFiEventHandler onGotIp;
+
 
 // {
 // 	"cmd" : 1,
@@ -38,7 +42,19 @@ SprinklerManager sManager;
 // 	"cmd" : 0
 // }
 
-void callback(char* topic, byte* payload, unsigned int length) 
+void onStationConnected(const WiFiEventStationModeConnected& evt) {
+  Serial.println("Station connected");
+}
+
+void onStationDisconnected(const WiFiEventStationModeDisconnected& evt) {
+  Serial.println("Station disconnected");
+}
+
+void onStationGotIp(const WiFiEventStationModeGotIP& evt) {
+  Serial.println("Gor Ip addr");
+}
+
+void onMqttPayloadRcvd(char* topic, byte* payload, unsigned int length) 
 {
   Serial.print("Message arrived [");
   Serial.print(topic);
@@ -78,7 +94,7 @@ void callback(char* topic, byte* payload, unsigned int length)
 boolean reconnect() {
   long now = millis();
 
-  if (now - lastReconnectAttempt > 5000) 
+  if (((now - lastReconnectAttempt) > 5000) && WiFi.isConnected()) 
   {
       Serial.println(F("Connecting to MQTT server..."));
       lastReconnectAttempt = now;
@@ -98,36 +114,46 @@ boolean reconnect() {
 
 void setup() {
   Serial.begin(115200);
+
+  WiFi.mode(WIFI_STA);
+  WiFi.setAutoReconnect(true);
+  onConnected = WiFi.onStationModeConnected(&onStationConnected);
+  onDisconnected = WiFi.onStationModeDisconnected(&onStationDisconnected);
+  onGotIp = WiFi.onStationModeGotIP(&onStationGotIp);
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+
+  //Led Pin
+	pinMode ( LED, OUTPUT );
+	digitalWrite ( LED, LOW );
+
   mqttClient.setServer(mqttIpAddr, 1883);
-  mqttClient.setCallback(callback);
+  mqttClient.setCallback(onMqttPayloadRcvd);
 
   Serial.println(F("Starting up..."));
 
   sManager.begin();
   sManager.addSprinkler(&area1Sprinkler);
   sManager.addSprinkler(&area2Sprinkler);
-  
-
-  Serial.println(F("Connecting to wifi..."));
-  WiFi.begin("", "");
-
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println();
-
-  Serial.print("Connected, IP address: ");
-  Serial.println(WiFi.localIP());
 }
 
-void loop() {
+void loop() 
+{
   if (!mqttClient.connected()) 
   {
     reconnect();
   } 
-  else 
+  
+  if(mqttClient.connected())
   {
     // Client connected
     mqttClient.loop();
