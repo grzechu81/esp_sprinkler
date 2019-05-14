@@ -80,6 +80,7 @@ boolean reconnect() {
 
   if (now - lastReconnectAttempt > 5000) 
   {
+      Serial.println(F("Connecting to MQTT server..."));
       lastReconnectAttempt = now;
 
       // Attempt to reconnect
@@ -100,12 +101,25 @@ void setup() {
   mqttClient.setServer(mqttIpAddr, 1883);
   mqttClient.setCallback(callback);
 
+  Serial.println(F("Starting up..."));
+
   sManager.begin();
   sManager.addSprinkler(&area1Sprinkler);
   sManager.addSprinkler(&area2Sprinkler);
   
-  WiFi.begin("ssid", "passwd");
-  delay(1500);
+
+  Serial.println(F("Connecting to wifi..."));
+  WiFi.begin("", "");
+
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println();
+
+  Serial.print("Connected, IP address: ");
+  Serial.println(WiFi.localIP());
 }
 
 void loop() {
