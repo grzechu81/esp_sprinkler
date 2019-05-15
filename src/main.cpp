@@ -149,8 +149,6 @@ void loop()
   {
     mqttClient.loop();
     sManager.loop();
-
-    
   }
   else
   {
