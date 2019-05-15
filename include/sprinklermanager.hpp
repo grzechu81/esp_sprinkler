@@ -13,11 +13,13 @@ class SprinklerManager
         void stop();
         void begin();
         void loop();
+        bool isPending();
         void addSprinkler(Sprinkler* sprinkler);
 
     private:
         Sprinkler* sprinklers[MAX_SPRINKLER_COUNT];
         uint8_t sprinklerCount;
+        bool pending;
 };
 
 #endif // _SUPERVISOR_HPP

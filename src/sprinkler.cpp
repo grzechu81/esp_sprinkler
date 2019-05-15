@@ -31,6 +31,7 @@ void Sprinkler::stop()
     digitalWrite(pin, LOW);
     isStarted = false;
     startMilisecond = 0;
+    scheduledTime = 0;
 }
 
 bool Sprinkler::process()

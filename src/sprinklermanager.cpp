@@ -5,6 +5,7 @@ void SprinklerManager::start(uint8_t id, uint8_t time)
     if((id < MAX_SPRINKLER_COUNT) && (sprinklers[id] != nullptr))
     {
         sprinklers[id]->start(time);
+        pending = true;
     }
 }
 
@@ -15,6 +16,7 @@ void SprinklerManager::stop()
         if(sprinklers[i] != nullptr)
         {
             sprinklers[i]->stop();
+            pending = false;
         }
     }
 }
@@ -22,6 +24,7 @@ void SprinklerManager::stop()
 void SprinklerManager::begin()
 {
     sprinklerCount = 0;
+    pending = false;
 }
 
 void SprinklerManager::loop()
@@ -36,6 +39,11 @@ void SprinklerManager::loop()
             }
         }
     }
+}
+
+bool SprinklerManager::isPending()
+{
+    return pending;
 }
 
 void SprinklerManager::addSprinkler(Sprinkler* sprinkler)

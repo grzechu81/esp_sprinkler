@@ -91,7 +91,7 @@ void onMqttPayloadRcvd(char* topic, byte* payload, unsigned int length)
   }
 }
 
-boolean reconnect() {
+boolean mqttReconnect() {
   long now = millis();
 
   if (((now - lastReconnectAttempt) > 5000) && WiFi.isConnected()) 
@@ -117,15 +117,11 @@ void setup() {
 
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(true);
+  WiFi.setAutoConnect(true);
   onConnected = WiFi.onStationModeConnected(&onStationConnected);
   onDisconnected = WiFi.onStationModeDisconnected(&onStationDisconnected);
   onGotIp = WiFi.onStationModeGotIP(&onStationGotIp);
   WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
 
   Serial.println("");
   Serial.println("WiFi connected");
@@ -148,17 +144,23 @@ void setup() {
 
 void loop() 
 {
-  if (!mqttClient.connected()) 
-  {
-    reconnect();
-  } 
   
-  if(mqttClient.connected())
+  if (mqttClient.connected()) 
   {
-    // Client connected
     mqttClient.loop();
     sManager.loop();
+
+    
   }
+  else
+  {
+    mqttReconnect();
+
+    if(sManager.isPending())
+    {
+      sManager.stop();
+    }
+  } 
 }
 
 #endif
