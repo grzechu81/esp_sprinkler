@@ -14,8 +14,8 @@
 #define LED 2
 
 long lastReconnectAttempt = 0;
-const char *ssid = "AndroidAP";
-const char *password = "haslo123";
+const char *ssid = "xxx";
+const char *password = "yyy";
 
 IPAddress mqttIpAddr(172, 16, 0, 2);
 WiFiClient wifiClient;
